@@ -1,0 +1,7 @@
+This project is for posting poems to Weibo.
+
+You need to rename tangsong.config.example to tangsong.config, and update the consumer_key, consumer_secret (in the first line), token, tokenSecret (in the second line). The two tokens in each line are separated by \t (tab).
+
+Be sure to update the directories in tangsong.sh and tangsong.py. Currently it is /home/...
+
+And update the symbolic link, weibopy, to the weibo python sdk directory.
