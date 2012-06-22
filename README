@@ -1,7 +1,12 @@
 This project is for posting poems to Weibo.
 
-You need to rename tangsong.config.example to tangsong.config, and update the consumer_key, consumer_secret (in the first line), token, tokenSecret (in the second line). The two tokens in each line are separated by \t (tab).
+The corpus of Tang and Song poems (tang300 and song100) are from Linux fortune-zh-1.9
 
-Be sure to update the directories in tangsong.sh and tangsong.py. Currently it is /home/...
+Main entry: tangsong.sh
+Please create a dir named "poemimg" before using.
 
-And update the symbolic link, weibopy, to the weibo python sdk directory.
+It first invokes "fortune" to randomly select a poem from both tang and song, but output the result into a file (tang.poem and song.poem). Then the tangsong.py file randomly pick either tang or song. This python file also requests a query in Google Images (mobile version), and automatically picks the image of the first result (the original size image). Finally it posts the poem together with the image to Weibo.
+
+The Weibo OAuth2 auto-renewed helper is from SinaWeiboAuth2, https://github.com/CAQ/SinaWeiboAuth2
+
+Another Weibo API is also required: http://code.google.com/p/sinaweibopy/

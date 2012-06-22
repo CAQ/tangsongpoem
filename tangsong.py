@@ -1,8 +1,9 @@
 # coding=utf-8
 
-import sys, os
-from weibopy.auth import OAuthHandler
-from weibopy.api import API
+import sys, os, subprocess
+from myauth2 import MyAuth2
+#from weibopy.auth import OAuthHandler
+#from weibopy.api import API
 import time
 import random, math
 import urllib, urllib2
@@ -18,8 +19,13 @@ def str2code(s):
     m.update(s)
     return m.hexdigest()
 
+def postimg(unicodetext, imgfilename):
+    global ma2
+    print imgfilename
+    return subprocess.check_output("java -jar uploadpic.jar \"" + ma2.ACCESS_TOKEN + "\" \"" + unicodetext.encode('utf-8') + "\" \"" + imgfilename + "\"", shell=True, stderr=subprocess.STDOUT)
+
 try:
-    filenames = ['/home/caq/fortune-zh-1.9/tang.poem', '/home/caq/fortune-zh-1.9/song.poem']
+    filenames = ['tang.poem', 'song.poem']
     poem = ['', '']
     title = ['', '']
     author = ['', '']
@@ -53,7 +59,7 @@ try:
     msg += poem[choose]
     msg += '[' + time.strftime('%H:%M', time.localtime(time.time())) + ']'
 
-    imgfilename = '/home/caq/fortune-zh-1.9/poemimg/' + str2code(title[choose]) + '-' + str2code(author[choose]) + '.jpg'
+    imgfilename = 'poemimg/' + str2code(title[choose]) + '-' + str2code(author[choose]) + '.jpg'
     hasimg = True
 
     if not os.path.isfile(imgfilename):
@@ -67,7 +73,6 @@ try:
             imgsrc = content[imgsrcind+12 : content.find('&amp;imgrefurl', imgsrcind+8)]
         if len(imgsrc) > 0:
             imgsrc = urllib.unquote(imgsrc)
-            print imgsrc
             try:
                 imgfile = open(imgfilename, 'wb')
                 imgfile.write(urllib2.urlopen(imgsrc).read())
@@ -76,33 +81,33 @@ try:
             except:
                 pass
 
-    f = open('/home/caq/fortune-zh-1.9/tangsong.config')
-    cks = f.readline().strip().split('\t')
-    tks = f.readline().strip().split('\t')
-    # consumer_key, consumer_secret
-    auth = OAuthHandler(cks[0], cks[1])
-    # token, tokenSecret
-    auth.setToken(tks[0], tks[1])
-    api = API(auth)
+    ma2 = MyAuth2(1793326004)
+
+    #if hasimg:
+    #    imgf = open(imgfilename, 'rb')
 
     umsg = msg.decode('utf-8')
     currp = 0
     totalp = int(math.ceil(float(len(umsg)) / 139))
     if len(umsg) > 130:
         for currp in range(0, totalp):
-            # print '(' + str(currp+1) + '/' + str(totalp) + ')' + umsg[currp*130:currp*130+130]
             thismsg = '(' + str(currp+1) + '/' + str(totalp) + ')' + umsg[currp*130:currp*130+130]
-            if currp == 0:
-                api.upload(filename=imgfilename, status=thismsg.encode('utf-8'))
+            if currp == 0 and hasimg:
+                stderr = postimg(thismsg, imgfilename)
+                if stderr.find('Exception') >= 0:
+                    break
+                #ma2.client.post.statuses__upload(status=thismsg.encode('utf-8'), pic=imgf)
+                #imgf.close()
             else:
-                api.update_status(thismsg)
+                ma2.client.post.statuses__update(status=thismsg)
             time.sleep(1)
     else:
-        # print umsg
         if hasimg:
-            api.upload(filename=imgfilename, status=umsg.encode('utf-8'))
+            postimg(umsg, imgfilename)
+            #ma2.client.post.statuses__upload(status=umsg.encode('utf-8'), pic=imgf)
+            #imgf.close()
         else:
-            api.update_status(umsg)
+            ma2.client.post.statuses__update(status=umsg)
 except:
     #raise
     pass
